@@ -4,9 +4,11 @@ import { Button, Card, Form, Container, Row, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { toast } from "react-toastify";
 import { addCompany } from "services/company";
+import { brandSchema } from "validation";
 
 function CreateCompany() {
   const history = useHistory();
+  const [errors, setErrors] = useState({});
   const handleSubmit = async (event) => {
     event.preventDefault();
     const name = document.querySelector("#name").value;
@@ -19,13 +21,27 @@ function CreateCompany() {
       image: imageURL,
       description,
     };
-    addCompany(formData)
-      .then((response) => {
-        toast.success("Thêm thành công");
-        history.goBack();
+    brandSchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        addCompany(formData)
+          .then((response) => {
+            toast.success("Thêm thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              console.log('ok')
+              setErrors({ name: "Tên nhà phát hành đã tồn tại" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
   return (
@@ -47,7 +63,11 @@ function CreateCompany() {
                           placeholder="Company Name"
                           type="text"
                           id="name"
+                          isInvalid={!!errors.name}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -55,7 +75,14 @@ function CreateCompany() {
                     <Col md="12">
                       <Form.Group>
                         <label>Image</label>
-                        <Form.Control type="file" id="image"></Form.Control>
+                        <Form.Control
+                          type="file"
+                          id="image"
+                          isInvalid={!!errors.image}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.image}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -67,7 +94,11 @@ function CreateCompany() {
                           placeholder="Description"
                           type="text"
                           id="description"
+                          isInvalid={!!errors.description}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.description}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>

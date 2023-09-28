@@ -1,3 +1,3 @@
 import { categorySchema, updateCategorySchema } from "./schemas/categorySchema";
-
-export { categorySchema, updateCategorySchema };
+import { brandSchema, updateBrandSchema } from "./schemas/brandSchema";
+export { categorySchema, updateCategorySchema, brandSchema, updateBrandSchema };

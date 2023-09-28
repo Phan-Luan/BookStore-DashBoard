@@ -10,12 +10,13 @@ import {
 import { getCompany } from "services/company";
 import { updateCompany } from "services/company";
 import { toast } from "react-toastify";
+import { updateBrandSchema } from "validation";
 
 function UpdateCompany() {
   const [company, setCompany] = useState([]);
   const { id } = useParams();
   const history = useHistory();
-
+  const [errors, setErrors] = useState({});
   useEffect(() => {
     getCompany(id)
       .then((response) => {
@@ -34,7 +35,6 @@ function UpdateCompany() {
     });
   };
 
-  // Xử lý sự kiện khi chọn tệp hình ảnh
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -65,14 +65,27 @@ function UpdateCompany() {
       image: imageURL,
       description,
     };
-    updateCompany(formData)
-      .then((response) => {
-        setCompany([{ name: "", image: null }]);
-        toast.success("Cập nhật thành công");
-        history.goBack();
+    updateBrandSchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        updateCompany(formData)
+          .then((response) => {
+            setCompany([{ name: "", image: null }]);
+            toast.success("Cập nhật thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              setErrors({ name: "Tên nhà phát hành đã tồn tại" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
 
@@ -98,7 +111,11 @@ function UpdateCompany() {
                           name="name"
                           value={company.name}
                           onChange={handleChange}
+                          isInvalid={!!errors.name}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -113,7 +130,11 @@ function UpdateCompany() {
                           name="description"
                           value={company.description}
                           onChange={handleChange}
+                          isInvalid={!!errors.description}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.description}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -125,8 +146,15 @@ function UpdateCompany() {
                           type="file"
                           id="inputGroupFile01"
                           onChange={handleImageChange}
+                          isInvalid={!!errors.image}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.image}
+                        </Form.Control.Feedback>
                       </Form.Group>
+                      {company.image && (
+                        <img width={100} src={company.image} alt="Selected" />
+                      )}
                     </Col>
                   </Row>
                   <Button
