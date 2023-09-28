@@ -9,11 +9,12 @@ import {
 import { toast } from "react-toastify";
 import { updateUser } from "services/user";
 import { getUser } from "services/user";
-import { addUser } from "services/user";
+import { updateUserSchema } from "validation";
 
 function UpdateUser() {
   const history = useHistory();
   const { id } = useParams();
+  const [errors, setErrors] = useState({});
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -24,8 +25,8 @@ function UpdateUser() {
   });
 
   useEffect(() => {
-    getUser(id).then(({data}) => {
-      setUser({...data,id:id});
+    getUser(id).then(({ data }) => {
+      setUser({ ...data, id: id });
     });
   }, [id]);
 
@@ -47,13 +48,26 @@ function UpdateUser() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    updateUser(user)
-      .then((response) => {
-        toast.success("Thêm thành công");
-        history.goBack();
+    updateUserSchema
+      .validate(user, { abortEarly: false })
+      .then(() => {
+        updateUser(user)
+          .then((response) => {
+            toast.success("Cập nhật thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              setErrors({ email: "Email đã được sử dụng" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
   return (
@@ -63,7 +77,7 @@ function UpdateUser() {
           <Col md="12">
             <Card>
               <Card.Header>
-                <Card.Title as="h4">Create User</Card.Title>
+                <Card.Title as="h4">Update User</Card.Title>
               </Card.Header>
               <Card.Body>
                 <Form onSubmit={handleSubmit}>
@@ -78,7 +92,11 @@ function UpdateUser() {
                           name="name"
                           value={user.name}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.name}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -93,20 +111,28 @@ function UpdateUser() {
                           name="email"
                           value={user.email}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.email}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.email}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
                   <Row>
                     <Col md="12">
-                      <Form.Group>
+                      <Form.Group className="custom-file">
                         <label>Image</label>
                         <Form.Control
                           type="file"
                           id="image"
                           name="image"
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.image}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.image}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -121,7 +147,11 @@ function UpdateUser() {
                           name="address"
                           value={user.address}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.address}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.address}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -136,7 +166,11 @@ function UpdateUser() {
                           name="phone"
                           value={user.phone}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.phone}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.phone}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>

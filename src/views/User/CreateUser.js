@@ -4,9 +4,11 @@ import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { toast } from "react-toastify";
 import { addUser } from "services/user";
+import { userSchema } from "validation";
 
 function CreateUser() {
   const history = useHistory();
+  const [errors, setErrors] = useState({});
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -34,13 +36,30 @@ function CreateUser() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    addUser(user)
-      .then((response) => {
-        toast.success("Thêm thành công");
-        history.goBack();
+    const formData = {
+      ...user,
+      image: document.querySelector("#image").files[0],
+    };
+    userSchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        addUser(user)
+          .then((response) => {
+            toast.success("Thêm thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              setErrors({ email: "Email đã được sử dụng" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
   return (
@@ -65,7 +84,11 @@ function CreateUser() {
                           name="name"
                           value={user.name}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.name}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -80,7 +103,11 @@ function CreateUser() {
                           name="email"
                           value={user.email}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.email}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.email}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -95,20 +122,28 @@ function CreateUser() {
                           name="password"
                           value={user.password}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.password}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.password}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
                   <Row>
                     <Col md="12">
-                      <Form.Group>
+                      <Form.Group className="custom-file">
                         <label>Image</label>
                         <Form.Control
                           type="file"
                           id="image"
                           name="image"
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.image}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.image}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -123,7 +158,11 @@ function CreateUser() {
                           name="address"
                           value={user.address}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.address}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.address}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -138,7 +177,11 @@ function CreateUser() {
                           name="phone"
                           value={user.phone}
                           onChange={handleChange}
-                        />
+                          isInvalid={!!errors.phone}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.phone}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
