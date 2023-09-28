@@ -11,21 +11,6 @@ import { categorySchema } from "validation";
 function CreateCategory() {
   const history = useHistory();
   const [errors, setErrors] = useState({});
-  const validate = async (name, image) => {
-    try {
-      const error = await categorySchema.validate({ name, image });
-      console.log(error);
-      setErrors({});
-      return true;
-    } catch (err) {
-      const fieldErrors = {};
-      err.inner.forEach((e) => {
-        fieldErrors[e.path] = e.message;
-      });
-      setErrors(fieldErrors);
-      return false;
-    }
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -34,21 +19,30 @@ function CreateCategory() {
     const imageURL = await imageUpload(image);
     // console.log(getPublicIdFromUrl(imageURL));
 
-    const isValid = await validate(name, image);
-    if (!isValid) {
-      return;
-    }
     const formData = {
       name,
       image: imageURL,
     };
-    addCategory(formData)
-      .then((response) => {
-        toast.success("Thêm thành công");
-        history.goBack();
+    categorySchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        addCategory(formData)
+          .then((response) => {
+            toast.success("Thêm thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              setErrors({ name: "Tên danh mục đã tồn tại" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
 

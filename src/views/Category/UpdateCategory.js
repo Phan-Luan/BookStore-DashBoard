@@ -10,9 +10,12 @@ import {
   useParams,
 } from "react-router-dom/cjs/react-router-dom.min";
 import { toast } from "react-toastify";
+import { categorySchema } from "validation";
+import { updateCategorySchema } from "validation";
 function UpdateCategory() {
   const [categorie, setCategorie] = useState([]);
   const { id } = useParams();
+  const [errors, setErrors] = useState({});
   const history = useHistory();
   useEffect(() => {
     getCategory(id)
@@ -54,14 +57,27 @@ function UpdateCategory() {
       name,
       image: imageURL,
     };
-    updateCategory(formData)
-      .then((response) => {
-        setCategorie([{ name: "", image: null }]);
-        toast.success("Cập nhật thành công");
-        history.goBack();
+    updateCategorySchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        updateCategory(formData)
+          .then((response) => {
+            setCategorie([{ name: "", image: null }]);
+            toast.success("Cập nhật thành công");
+            history.goBack();
+          })
+          .catch(({ response }) => {
+            if (response.status == 422) {
+              setErrors({ name: "Tên danh mục đã tồn tại" });
+            }
+          });
       })
-      .catch((error) => {
-        console.error("Error sending data to API:", error);
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
       });
   };
   return (
@@ -85,7 +101,11 @@ function UpdateCategory() {
                           id="name"
                           value={categorie.name}
                           onChange={handlName}
+                          isInvalid={!!errors.name}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -97,11 +117,15 @@ function UpdateCategory() {
                           type="file"
                           id="inputGroupFile01"
                           onChange={handleImageChange}
+                          isInvalid={!!errors.image}
                         ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.image}
+                        </Form.Control.Feedback>
                       </Form.Group>
-                      {/* {categorie.image && (
+                      {categorie.image && (
                         <img width={100} src={categorie.image} alt="Selected" />
-                      )} */}
+                      )}
                     </Col>
                   </Row>
                   <Button

@@ -1,3 +1,3 @@
-import categorySchema from "./schemas/categorySchema";
+import { categorySchema, updateCategorySchema } from "./schemas/categorySchema";
 
-export { categorySchema };
+export { categorySchema, updateCategorySchema };
