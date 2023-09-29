@@ -31,7 +31,6 @@ function CreateCompany() {
           })
           .catch(({ response }) => {
             if (response.status == 422) {
-              console.log('ok')
               setErrors({ name: "Tên nhà phát hành đã tồn tại" });
             }
           });

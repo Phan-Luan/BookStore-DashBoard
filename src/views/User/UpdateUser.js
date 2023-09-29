@@ -7,6 +7,7 @@ import {
   useParams,
 } from "react-router-dom/cjs/react-router-dom.min";
 import { toast } from "react-toastify";
+import { getRoles } from "services/user";
 import { updateUser } from "services/user";
 import { getUser } from "services/user";
 import { updateUserSchema } from "validation";
@@ -21,37 +22,67 @@ function UpdateUser() {
     image: "",
     address: "",
     phone: "",
-    gender: "male",
+    gender: "0",
+    role_ids: [],
   });
+  const [choose, setChoose] = useState({});
 
   useEffect(() => {
     getUser(id).then(({ data }) => {
-      setUser({ ...data, id: id });
+      setUser({
+        ...data,
+        id: id,
+        role_ids: data.roles.map((item) => item.id),
+      });
+    });
+    getRoles().then(({ data }) => {
+      setChoose(data);
     });
   }, [id]);
 
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-    if (name === "image") {
-      const imageURL = await imageUpload(e.target.files[0]);
-      setUser({
-        ...user,
-        [name]: imageURL,
-      });
+  const handleChange = async (event) => {
+    const { name, value, type, files } = event.target;
+
+    if (type === "checkbox") {
+      const numericValue = parseInt(value, 10);
+
+      const updatedRoleIds = user.role_ids.includes(numericValue)
+        ? user.role_ids.filter((id) => id !== numericValue)
+        : [...user.role_ids, numericValue];
+
+      setUser((prevData) => ({
+        ...prevData,
+        role_ids: updatedRoleIds,
+      }));
     } else {
-      setUser({
-        ...user,
-        [name]: value,
-      });
+      if (name === "image") {
+        const imageURL = event.target.files[0];
+        setUser({
+          ...user,
+          [name]: imageURL,
+        });
+      } else {
+        setUser({
+          ...user,
+          [name]: value,
+        });
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     updateUserSchema
       .validate(user, { abortEarly: false })
-      .then(() => {
-        updateUser(user)
+      .then(async () => {
+        const newImage = await imageUpload(user.image);
+
+        const updatedUser = {
+          ...user,
+          image: newImage,
+        };
+        updateUser(updatedUser)
           .then((response) => {
             toast.success("Cập nhật thành công");
             history.goBack();
@@ -70,6 +101,7 @@ function UpdateUser() {
         setErrors(validationErrorsObj);
       });
   };
+
   return (
     <>
       <Container fluid>
@@ -190,8 +222,37 @@ function UpdateUser() {
                       </Form.Group>
                     </Col>
                   </Row>
+                  <Row>
+                    <Col md="12">
+                      <Form.Group controlId="formBasicCheckbox">
+                        {Object.keys(choose).map((key) => (
+                          <div key={key}>
+                            <h3>{key}</h3>
+                            {choose[key].map((item) => (
+                              <div key={item.id}>
+                                <Form.Check
+                                  type="checkbox"
+                                  label={item.display_name}
+                                  value={parseInt(item.id, 10)}
+                                  name="role_ids[]"
+                                  id={item.id.toString()}
+                                  checked={
+                                    user.role_ids &&
+                                    user.role_ids
+                                      .map((id) => id)
+                                      .includes(item.id)
+                                  }
+                                  onChange={handleChange}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </Form.Group>
+                    </Col>
+                  </Row>
                   <Button className="btn-fill" type="submit" variant="info">
-                    Create User
+                    Update User
                   </Button>
                   <div className="clearfix"></div>
                 </Form>

@@ -114,7 +114,7 @@ function Users() {
                           </td>
                           <td>{item.phone}</td>
                           <td>{item.address}</td>
-                          <td>{item.gender == 0 ? "Nam" : "Nữ"}</td>
+                          <td>{item.gender == 0 ? "Male" : "Female"}</td>
                           <td width={300}>
                             <NavLink
                               className="btn btn-primary mx-2"

@@ -22,5 +22,7 @@ const updateUser = (user) => {
 const deleteUser = (id) => {
   return instance.delete(`users/${id}`);
 };
-
-export { getUsers, getUser, addUser, updateUser, deleteUser };
+const getRoles = () => {
+  return instance.get(`users/create`);
+};
+export { getUsers, getUser, addUser, updateUser, deleteUser, getRoles };

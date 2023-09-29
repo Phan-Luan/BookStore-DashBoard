@@ -1,56 +1,118 @@
 import { imageUpload } from "lib/handleImage";
 import React, { useState } from "react";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import { useEffect } from "react";
+import { Button, Card, Form, Container, Row, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
-import { toast } from "react-toastify";
 import { addUser } from "services/user";
+import { getRoles } from "services/user";
 import { userSchema } from "validation";
+import { toast } from "react-toastify";
 
 function CreateUser() {
   const history = useHistory();
   const [errors, setErrors] = useState({});
-  const [user, setUser] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     image: "",
     address: "",
     phone: "",
-    password: "",
-    gender: "male",
+    gender: "0",
+    role_ids: [],
   });
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-    if (name === "image") {
-      const imageURL = await imageUpload(e.target.files[0]);
-      setUser({
-        ...user,
-        [name]: imageURL,
-      });
+
+  const [choose, setChoose] = useState({});
+
+  const { name, email, password, address, phone, gender, image, role_ids } =
+    formData;
+
+  const handleInputChange = async (event) => {
+    const { name, value, type, files, checked } = event.target;
+
+    if (type === "checkbox") {
+      // Nếu là checkbox, thêm hoặc loại bỏ giá trị vào mảng role_ids
+      const updatedRoleIds = formData.role_ids.includes(value)
+        ? formData.role_ids.filter((id) => id !== value)
+        : [...formData.role_ids, value];
+
+      setFormData((prevData) => ({
+        ...prevData,
+        role_ids: updatedRoleIds,
+      }));
     } else {
-      setUser({
-        ...user,
-        [name]: value,
-      });
+      if (name === "image") {
+        const imageURL = event.target.files[0];
+        setFormData({
+          ...formData,
+          [name]: imageURL,
+        });
+      } else {
+        setFormData({
+          ...formData,
+          [name]: value,
+        });
+      }
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = {
-      ...user,
+  useEffect(() => {
+    getRoles().then(({ data }) => {
+      setChoose(data);
+    });
+  }, []);
+
+  const ListCheck = ({ object }) => {
+    return (
+      <>
+        {Object.keys(object).map((key) => (
+          <div key={key}>
+            <h3>{key}</h3>
+            {object[key].map((item) => (
+              <div key={item.id}>
+                <Form.Check
+                  type="checkbox"
+                  label={item.display_name}
+                  value={item.id.toString()} // Đặt value là id của role
+                  name="role_ids[]" // Đặt name là "role_ids[]" để chúng được nhóm vào một mảng
+                  id={item.id.toString()}
+                  checked={formData.role_ids.includes(item.id.toString())} // Kiểm tra xem checkbox có nên được chọn hay không
+                  onChange={handleInputChange}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+      </>
+    );
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const formCheck = {
+      ...formData,
       image: document.querySelector("#image").files[0],
     };
     userSchema
-      .validate(formData, { abortEarly: false })
-      .then(() => {
-        addUser(user)
+      .validate(formCheck, { abortEarly: false })
+      .then(async () => {
+        // Sử dụng imageUpload để tải lên hình ảnh mới
+        const newImage = await imageUpload(formCheck.image);
+
+        // Tạo một đối tượng mới để thêm người dùng với hình ảnh mới
+        const newUser = {
+          ...formData,
+          image: newImage,
+        };
+
+        addUser(newUser)
           .then((response) => {
             toast.success("Thêm thành công");
-            history.goBack();
+            history.push("/users"); // Chuyển hướng đến trang danh sách người dùng sau khi thêm thành công
           })
           .catch(({ response }) => {
-            if (response.status == 422) {
-              setErrors({ email: "Email đã được sử dụng" });
+            console.log(response);
+            if (response && response.status === 422) {
+              setErrors({ email: "Email đã tồn tại" });
             }
           });
       })
@@ -62,6 +124,7 @@ function CreateUser() {
         setErrors(validationErrorsObj);
       });
   };
+
   return (
     <>
       <Container fluid>
@@ -82,8 +145,8 @@ function CreateUser() {
                           type="text"
                           id="name"
                           name="name"
-                          value={user.name}
-                          onChange={handleChange}
+                          value={name}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.name}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -101,8 +164,8 @@ function CreateUser() {
                           type="email"
                           id="email"
                           name="email"
-                          value={user.email}
-                          onChange={handleChange}
+                          value={email}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.email}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -120,8 +183,8 @@ function CreateUser() {
                           type="password"
                           id="password"
                           name="password"
-                          value={user.password}
-                          onChange={handleChange}
+                          value={password}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.password}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -138,7 +201,7 @@ function CreateUser() {
                           type="file"
                           id="image"
                           name="image"
-                          onChange={handleChange}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.image}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -156,8 +219,8 @@ function CreateUser() {
                           type="text"
                           id="address"
                           name="address"
-                          value={user.address}
-                          onChange={handleChange}
+                          value={address}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.address}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -175,8 +238,8 @@ function CreateUser() {
                           type="tel"
                           id="phone"
                           name="phone"
-                          value={user.phone}
-                          onChange={handleChange}
+                          value={phone}
+                          onChange={handleInputChange}
                           isInvalid={!!errors.phone}
                         ></Form.Control>
                         <Form.Control.Feedback type="invalid">
@@ -192,12 +255,19 @@ function CreateUser() {
                         <Form.Control
                           as="select"
                           name="gender"
-                          value={user.gender}
-                          onChange={handleChange}
+                          value={gender}
+                          onChange={handleInputChange}
                         >
                           <option value="0">Male</option>
                           <option value="1">Female</option>
                         </Form.Control>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md="12">
+                      <Form.Group controlId="formBasicCheckbox">
+                        <ListCheck object={choose} />
                       </Form.Group>
                     </Col>
                   </Row>

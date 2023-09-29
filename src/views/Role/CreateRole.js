@@ -4,14 +4,15 @@ import { Button, Card, Form, Container, Row, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { postRole } from "services/Role";
 import { getPermission } from "services/Role";
+import { roleSchema } from "validation";
 
 function CreateRole() {
   const history = useHistory();
-  const [errorMessages, setErrorMessages] = useState({});
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: "",
     display_name: "",
-    group: "",
+    group: "user",
     permission_ids: [],
   });
   const [choose, setChoose] = useState({});
@@ -41,7 +42,7 @@ function CreateRole() {
   };
 
   useEffect(() => {
-    getPermission().then(({data}) => {
+    getPermission().then(({ data }) => {
       setChoose(data);
     });
   }, []);
@@ -74,20 +75,27 @@ function CreateRole() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    try {
-      // await validationSchema.validate(formData, { abortEarly: false });
-
-      await postRole(formData);
-
-      history.push("/admin/roles");
-    } catch (error) {
-      // If validation fails, update the error messages
-      // const errors = {};
-      // error.inner.forEach((e) => {
-      //   errors[e.path] = e.message;
-      // });
-      // setErrorMessages(errors);
-    }
+    roleSchema
+      .validate(formData, { abortEarly: false })
+      .then(() => {
+        postRole(formData)
+          .then((response) => {
+            toast.success("Thêm thành công");
+            history.gopush('roles');
+          })
+          .catch(({response} ) => {
+            if (response.status == 500) {
+              setErrors({ name: "Role đã tồn tại" });
+            }
+          });
+      })
+      .catch((validationErrors) => {
+        const validationErrorsObj = {};
+        validationErrors.inner.forEach((error) => {
+          validationErrorsObj[error.path] = error.message;
+        });
+        setErrors(validationErrorsObj);
+      });
   };
 
   return (
@@ -111,7 +119,11 @@ function CreateRole() {
                           type="text"
                           value={name}
                           onChange={handleInputChange}
-                        />
+                          isInvalid={!!errors.name}
+                        ></Form.Control>
+                        <Form.Control.Feedback type="invalid">
+                          {errors.name}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -125,7 +137,11 @@ function CreateRole() {
                           type="text"
                           value={display_name}
                           onChange={handleInputChange}
-                        />
+                          isInvalid={!!errors.display_name}
+                          ></Form.Control>
+                          <Form.Control.Feedback type="invalid">
+                            {errors.display_name}
+                          </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -139,7 +155,6 @@ function CreateRole() {
                           name="group"
                           onChange={handleInputChange}
                         >
-                          <option value="">Choose</option>
                           <option value="system">System</option>
                           <option value="user">User</option>
                         </Form.Control>
