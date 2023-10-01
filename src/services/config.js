@@ -2,6 +2,7 @@ import axios from "axios";
 
 const instance = axios.create({
   baseURL: "https://luanpv.id.vn/api/",
+  mode: 'no-cors',
 });
 instance.interceptors.request.use(
   (config) => {
