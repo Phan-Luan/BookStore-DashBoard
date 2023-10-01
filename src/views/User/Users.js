@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import {
   Button,
   Card,
-  Table,
-  Container,
-  Row,
   Col,
-  FormText,
+  Container,
   Form,
+  Row,
+  Table,
 } from "react-bootstrap";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
 import {
@@ -15,8 +14,7 @@ import {
   useLocation,
 } from "react-router-dom/cjs/react-router-dom.min";
 import { toast } from "react-toastify";
-import { deleteUser } from "services/user";
-import { getUsers } from "services/user";
+import { deleteUser, getUsers } from "services/user";
 
 function Users() {
   const [users, setUsers] = useState([]);
