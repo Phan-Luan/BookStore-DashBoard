@@ -58,7 +58,7 @@ function Admin() {
           return <Redirect to="/admin/login" key={key} />;
         } else {
           // Bắt đầu kiểm tra thời gian tồn tại của token (ví dụ: mỗi 1 phút)
-          setInterval(checkTokenExpiration, 60000); // 1 phút = 60000 mili giây
+          setInterval(checkTokenExpiration, 1000); // 1 phút = 60000 mili giây
           return (
             <Route
               path={prop.layout + prop.path}

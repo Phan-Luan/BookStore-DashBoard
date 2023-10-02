@@ -31,9 +31,8 @@ const LoginForm = () => {
     let error_pw = "Sai mật khẩu";
     login(formData)
       .then(({ data }) => {
-        const tokenTimestamp = new Date().getTime() + 60 * 60 * 1000;
         sessionStorage.setItem("token", data.data.token);
-        sessionStorage.setItem("tokenTimestamp", tokenTimestamp);
+        sessionStorage.setItem("tokenTimestamp", data.data.token_timestamp);
         history.push("books");
         setFormData({
           email: "",
