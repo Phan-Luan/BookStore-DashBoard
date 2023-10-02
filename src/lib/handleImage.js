@@ -25,7 +25,7 @@ function getPublicIdFromUrl(imageUrl) {
   const lastPart = parts.pop(); // Lấy phần cuối cùng của URL
   const publicId = lastPart.split(".")[0]; // Lấy public_id và bỏ phần mở rộng
   const publicIdParts = publicId.split("/");
-  return "API/" + publicIdParts[publicIdParts.length - 1]; // Lấy public_id cuối cùng
+  return publicIdParts[publicIdParts.length - 1]; // Lấy public_id cuối cùng
 }
 
 const updateImage = async (oldPublicId, newImage) => {
@@ -63,13 +63,6 @@ const updateImage = async (oldPublicId, newImage) => {
   }
 };
 const deleteImage = async (id) => {
-  await axios.post(
-    `https://api.cloudinary.com/v1_1/phan-luan/image/destroy/${id}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  await axios.post(`/cloudinaryProxy/${id}`);
 };
 export { imageUpload, updateImage, getPublicIdFromUrl, deleteImage };

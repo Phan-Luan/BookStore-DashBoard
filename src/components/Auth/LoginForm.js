@@ -31,6 +31,10 @@ const LoginForm = () => {
     let error_pw = "Sai mật khẩu";
     login(formData)
       .then(({ data }) => {
+        if (data.errors) {
+          console.log(data);
+          setErrors(data.errors);
+        }
         sessionStorage.setItem("token", data.data.token);
         sessionStorage.setItem("tokenTimestamp", data.data.token_timestamp);
         history.push("books");
@@ -39,10 +43,8 @@ const LoginForm = () => {
           password: "",
         });
       })
-      .catch(({ response }) => {
-        response.status == 500
-          ? setErrors({ ...errors, password: [error_pw] })
-          : setErrors(response.data.errors);
+      .catch(() => {
+        setErrors({ ...errors, password: [error_pw] });
       });
   };
 
