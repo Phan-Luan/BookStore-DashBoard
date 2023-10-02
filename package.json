@@ -8,7 +8,7 @@
     "axios": "^1.5.0",
     "bootstrap": "4.6.0",
     "chartist": "0.11.4",
-    "cloudinary": "^1.40.0",
+    "cloudinary": "^1.41.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "express": "^4.18.2",

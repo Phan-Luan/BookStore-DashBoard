@@ -32,8 +32,9 @@ const LoginForm = () => {
     login(formData)
       .then(({ data }) => {
         if (data.errors) {
-          console.log(data);
           setErrors(data.errors);
+        } else {
+          setErrors({ ...errors, password: ["sai mk"] });
         }
         sessionStorage.setItem("token", data.data.token);
         sessionStorage.setItem("tokenTimestamp", data.data.token_timestamp);
@@ -43,9 +44,7 @@ const LoginForm = () => {
           password: "",
         });
       })
-      .catch(() => {
-        setErrors({ ...errors, password: [error_pw] });
-      });
+      .catch((response) => {});
   };
 
   return (

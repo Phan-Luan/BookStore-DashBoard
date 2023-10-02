@@ -62,7 +62,21 @@ const updateImage = async (oldPublicId, newImage) => {
     }
   }
 };
-const deleteImage = async (id) => {
-  await axios.post(`/cloudinaryProxy/${id}`);
+
+// const cloudinary = require('cloudinary').v2;
+
+// cloudinary.config({
+//   cloud_name: 'phan-luan',
+//   api_key: '945318291577347',
+//   api_secret: 'BjqeUAxLXNbv0fVtynM9f12qlTM'
+// });
+const deleteImage = (id) => {
+  cloudinary.uploader.destroy(id, (error, result) => {
+    if (error) {
+      console.error('Error deleting image:', error);
+    } else {
+      console.log('Image deleted successfully:', result);
+    }
+  });
 };
 export { imageUpload, updateImage, getPublicIdFromUrl, deleteImage };
