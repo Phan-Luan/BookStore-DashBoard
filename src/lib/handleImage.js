@@ -63,13 +63,13 @@ const updateImage = async (oldPublicId, newImage) => {
   }
 };
 
-const cloudinary = require('cloudinary').v2;
+// const cloudinary = require('cloudinary').v2;
 
-cloudinary.config({
-  cloud_name: 'phan-luan',
-  api_key: '945318291577347',
-  api_secret: 'BjqeUAxLXNbv0fVtynM9f12qlTM'
-});
+// cloudinary.config({
+//   cloud_name: 'phan-luan',
+//   api_key: '945318291577347',
+//   api_secret: 'BjqeUAxLXNbv0fVtynM9f12qlTM'
+// });
 const deleteImage = (id) => {
   cloudinary.uploader.destroy(id, (error, result) => {
     if (error) {
