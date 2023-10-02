@@ -57,20 +57,20 @@ function Categories() {
   };
   const handleDeleteCategory = async (id) => {
     if (confirm("Bạn muốn xoá danh mục này?")) {
-      const { data } = await getCategory(id);
-      const image = data.image;
-      const imageID = getPublicIdFromUrl(image);
-      console.log(imageID);
-      await deleteImage(imageID);
-      // deleteCategory(id)
-      //   .then((response) => {
-      //     setCategories(categories.filter((category) => category.id !== id));
-      //     toast.success("Xoá thành công");
-      //   })
-      //   .catch((error) => {
-      //     toast.warn("Đã xảy ra lỗi");
-      //     console.error("Error fetching data:", error);
-      //   });
+      // const { data } = await getCategory(id);
+      // const image = data.image;
+      // const imageID = getPublicIdFromUrl(image);
+      // console.log(imageID);
+      // await deleteImage(imageID);
+      deleteCategory(id)
+        .then((response) => {
+          setCategories(categories.filter((category) => category.id !== id));
+          toast.success("Xoá thành công");
+        })
+        .catch((error) => {
+          toast.warn("Đã xảy ra lỗi");
+          console.error("Error fetching data:", error);
+        });
     }
   };
   return (
