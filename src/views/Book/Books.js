@@ -114,7 +114,16 @@ function Books() {
                         <td>
                           <img src={item.image} alt="Book Image" width={100} />
                         </td>
-                        <td>{item.description}</td>
+                        <td
+                          style={{
+                            maxWidth: "200px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {item.description}
+                        </td>
                         <td>{item.public_date}</td>
                         <td>{item.category.name}</td>
                         <td>{item.number_of_page}</td>

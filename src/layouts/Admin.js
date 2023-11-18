@@ -46,6 +46,7 @@ function Admin() {
           sessionStorage.removeItem("tokenTimestamp");
 
           console.log("Token đã hết hạn. Đã đăng xuất người dùng.");
+          alert("Token đã hết hạn. Đã đăng xuất người dùng.");
           history.push("login");
         }
       }

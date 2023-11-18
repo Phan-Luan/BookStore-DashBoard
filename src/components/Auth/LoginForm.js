@@ -2,6 +2,7 @@ import { error } from "jquery";
 import React, { useEffect, useState } from "react";
 import { Button, Card, Form, Container, Row, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { toast } from "react-toastify";
 import { login } from "services/auth";
 
 const LoginForm = () => {
@@ -28,23 +29,30 @@ const LoginForm = () => {
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
-    let error_pw = "Sai mật khẩu";
-    login(formData)
-      .then(({ data }) => {
-        if (data.errors) {
-          setErrors(data.errors);
-        } else {
-          setErrors({ ...errors, password: ["sai mk"] });
-        }
+    try {
+      const { data } = await login(formData);
+
+      if (data) {
         sessionStorage.setItem("token", data.data.token);
         sessionStorage.setItem("tokenTimestamp", data.data.token_timestamp);
+        console.log("OK");
+        toast.success("Đăng nhập thành công");
         history.push("books");
         setFormData({
           email: "",
           password: "",
         });
-      })
-      .catch((response) => {});
+      }
+    } catch (error) {
+      if (error.response) {
+        const newErrors = error.response.data.errors;
+        setErrors({ ...errors, ...newErrors });
+
+        if (error.response.status === 500) {
+          setErrors({ ...errors, password: ["Sai mật khẩu"] });
+        }
+      }
+    }
   };
 
   return (
